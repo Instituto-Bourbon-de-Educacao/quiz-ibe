@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz de Conhecimento Geral</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #quiz {
+      text-align: center;
+      padding: 20px;
+    }
+    #options-form label {
+      display: block;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+    #feedback {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    #form-container {
+      display: none;
+      margin-top: 20px;
+    }
+    #loading {
+      text-align: center;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="quiz" class="animate__animated animate__fadeIn">
+      <p>Selecione a resposta correta e clique em "Enviar Resposta".</p>
+      <p id="question-number"></p>
+      <h2 id="question"></h2>
+      <form id="options-form"></form>
+      <div id="feedback" class="animate__animated"></div>
+      <button id="submit" class="btn btn-primary">Enviar Resposta</button>
+    </div>
+    <div id="form-container" class="animate__animated animate__fadeIn">
+      <h3>Por favor, preencha o formulário abaixo:</h3>
+      <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScMkp4UHYlOtQApskcFiiZxsTVPlLZCvDtQqs71QfiMyHXc-w/viewform?usp=sharing" width="100%" height="480" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
+    </div>
+    <div id="loading">Carregando perguntas...</div>
+  </div>
+
+  <script>
+    let quizData = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const questionElement = document.getElementById('question');
+    const optionsForm = document.getElementById('options-form');
+    const submitButton = document.getElementById('submit');
+    const feedbackElement = document.getElementById('feedback');
+    const questionNumberElement = document.getElementById('question-number');
+    const formContainer = document.getElementById('form-container');
+    const loadingElement = document.getElementById('loading');
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function loadQuestion() {
+      const currentQuestion = quizData[currentQuestionIndex];
+      questionNumberElement.textContent = `Pergunta ${currentQuestionIndex + 1} de ${quizData.length}`;
+      questionElement.textContent = currentQuestion.question;
+      optionsForm.innerHTML = '';
+      const options = [...currentQuestion.options];
+      shuffle(options);
+      options.forEach(option => {
+        const label = document.createElement('label');
+        label.className = 'form-check-label';
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'option';
+        radio.value = option;
+        radio.className = 'form-check-input';
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(option));
+        optionsForm.appendChild(label);
+      });
+      submitButton.textContent = 'Enviar Resposta';
+      submitButton.disabled = true;
+      feedbackElement.textContent = '';
+      feedbackElement.classList.remove('animate__fadeIn');
+    }
+
+    optionsForm.addEventListener('change', () => {
+      submitButton.disabled = false;
+    });
+
+    submitButton.addEventListener('click', () => {
+      if (submitButton.textContent === 'Enviar Resposta') {
+        const selectedOption = document.querySelector('input[name="option"]:checked');
+        if (!selectedOption) {
+          alert('Por favor, selecione uma opção');
+          return;
+        }
+        const answer = selectedOption.value;
+        const correctAnswer = quizData[currentQuestionIndex].answer;
+        if (answer === correctAnswer) {
+          score++;
+          feedbackElement.textContent = 'Correto!';
+          feedbackElement.style.color = 'green';
+        } else {
+          feedbackElement.textContent = `Errado! A resposta correta é ${correctAnswer}.`;
+          feedbackElement.style.color = 'red';
+        }
+        feedbackElement.classList.add('animate__fadeIn');
+        document.querySelectorAll('input[name="option"]').forEach(radio => radio.disabled = true);
+        submitButton.textContent = 'Próxima';
+      } else {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+          loadQuestion();
+        } else {
+          document.getElementById('quiz').innerHTML = `
+            <h2>Quiz Concluído!</h2>
+            <p>Você acertou ${score} de ${quizData.length}</p>
+          `;
+          formContainer.style.display = 'block';
+        }
+      }
+    });
+
+    fetch('quizData.json')
+      .then(response => response.json())
+      .then(data => {
+        quizData = data;
+        shuffle(quizData);
+        loadingElement.style.display = 'none';
+        loadQuestion();
+      })
+      .catch(error => {
+        console.error('Erro ao carregar as perguntas:', error);
+        loadingElement.textContent = 'Erro ao carregar as perguntas. Tente novamente mais tarde.';
+      });
+  </script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

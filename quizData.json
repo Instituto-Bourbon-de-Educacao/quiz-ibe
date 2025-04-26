@@ -1,0 +1,17 @@
+[
+    {
+      "question": "Qual é a capital da França?",
+      "options": ["Paris", "Londres", "Berlim", "Madri"],
+      "answer": "Paris"
+    },
+    {
+      "question": "Qual é o maior planeta do sistema solar?",
+      "options": ["Terra", "Júpiter", "Saturno", "Marte"],
+      "answer": "Júpiter"
+    },
+    {
+      "question": "Quem escreveu 'Romeu e Julieta'?",
+      "options": ["William Shakespeare", "Charles Dickens", "Jane Austen", "Mark Twain"],
+      "answer": "William Shakespeare"
+    }
+  ]
